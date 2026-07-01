@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Notes — LinkVault</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="container py-3" style="max-width:1000px">
+  <div class="page-header">
+    <h1 class="page-title"><i class="bi bi-journal-text me-2" style="color:var(--accent)"></i>Standalone Notes</h1>
+    <div class="d-flex gap-2">
+      <button class="btn btn-sm btn-outline-secondary" onclick="doExport()">
+        <i class="bi bi-download me-1"></i>Export
+      </button>
+      <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#noteModal" onclick="openCreate()">
+        <i class="bi bi-plus-lg me-1"></i>New Note
+      </button>
+    </div>
+  </div>
+
+  <!-- filters -->
+  <div class="filter-bar mb-3">
+    <div class="row g-2 align-items-end">
+      <div class="col-12 col-md-3">
+        <label class="form-label small mb-1">Category</label>
+        <select id="filterCat" class="form-select form-select-sm">
+          <option value="">All categories</option>
+        </select>
+      </div>
+      <div class="col-12 col-md-5">
+        <label class="form-label small mb-1">Search title or content</label>
+        <input type="text" id="filterSearch" class="form-control form-control-sm" placeholder="Search...">
+      </div>
+      <div class="col-6 col-md-2 d-flex align-items-center gap-2 pt-3">
+        <input type="checkbox" id="filterPinned" class="form-check-input">
+        <label class="form-check-label small" for="filterPinned">Pinned only</label>
+      </div>
+      <div class="col-12 col-md-2 d-flex gap-1">
+        <button class="btn btn-primary btn-sm w-100" onclick="applyFilters()">Go</button>
+        <button class="btn btn-outline-secondary btn-sm" onclick="clearFilters()">✕</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- sort -->
+  <div class="d-flex align-items-center gap-2 mb-3">
+    <span class="text-muted small">Sort:</span>
+    <select id="sortBy" class="form-select form-select-sm" style="width:auto" onchange="renderPage()">
+      <option value="pinned">Pinned first</option>
+      <option value="date-desc">Newest first</option>
+      <option value="date-asc">Oldest first</option>
+      <option value="title-asc">Title A–Z</option>
+    </select>
+    <span class="text-muted small ms-auto" id="countLabel"></span>
+  </div>
+
+  <div class="card">
+    <div class="table-responsive">
+      <table class="table mb-0">
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Content</th>
+            <th>Category</th>
+            <th class="text-center">📌 Pin</th>
+            <th>Created</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="notesTable">
+          <tr class="loading-row"><td colspan="6"><div class="spinner-border spinner-border-sm text-secondary me-2"></div>Loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="pagination" class="mt-3"></div>
+</div>
+
+<!-- create / edit note modal -->
+<div class="modal fade" id="noteModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="noteModalTitle">New Note</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div id="noteModalAlert"></div>
+        <div class="mb-3">
+          <label class="form-label">Title <span class="text-danger">*</span></label>
+          <input type="text" id="noteTitle" class="form-control" placeholder="Note title" maxlength="100">
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Content <span class="text-danger">*</span></label>
+          <textarea id="noteContent" class="form-control" rows="5" placeholder="Write your note..." maxlength="1000"></textarea>
+          <div class="d-flex justify-content-between mt-1">
+            <span class="form-text text-muted">Max 1000 characters</span>
+            <span class="form-text text-muted" id="charCount">0 / 1000</span>
+          </div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Category <span class="text-danger">*</span></label>
+          <select id="noteCat" class="form-select">
+            <option value="">Select category...</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-primary" onclick="saveNote()">
+          <span id="noteSaveSpinner" class="spinner-border spinner-border-sm me-2 d-none"></span>
+          <span id="noteSaveTxt">Create</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+<script>
+buildNav('notes')
+
+const PER_PAGE = 10
+let allNotes = []
+let filtered = []
+let currentPage = 1
+let editingId = null
+let categories = []
+
+// char counter for textarea
+document.getElementById('noteContent').addEventListener('input', function() {
+  document.getElementById('charCount').textContent = `${this.value.length} / 1000`
+})
+
+async function init() {
+  const cRes = await apiFetch('/categories')
+  if (cRes && cRes.ok) {
+    categories = await cRes.json()
+    populateCatDropdown()
+  }
+  await loadNotes()
+}
+
+function populateCatDropdown() {
+  const filterSel = document.getElementById('filterCat')
+  const modalSel = document.getElementById('noteCat')
+  const opts = categories.map(c => `<option value="${c.id}">${escHtml(c.categoryName)}</option>`).join('')
+  filterSel.innerHTML = '<option value="">All categories</option>' + opts
+  modalSel.innerHTML = '<option value="">Select category...</option>' + opts
+}
+
+async function loadNotes() {
+  const params = buildParams()
+  const res = await apiFetch(`/notes?${params}`)
+  if (!res) return
+  allNotes = await res.json()
+  filtered = [...allNotes]
+  sortData()
+  currentPage = 1
+  renderPage()
+}
+
+function buildParams() {
+  const parts = []
+  const cat = document.getElementById('filterCat').value
+  const search = document.getElementById('filterSearch').value.trim()
+  const pinned = document.getElementById('filterPinned').checked
+  // api uses CategoryId, IsPinned, Search
+  if (cat) parts.push(`CategoryId=${cat}`)
+  if (search) parts.push(`Search=${encodeURIComponent(search)}`)
+  if (pinned) parts.push('IsPinned=true')
+  return parts.join('&')
+}
+
+function applyFilters() { currentPage = 1; loadNotes() }
+function clearFilters() {
+  document.getElementById('filterCat').value = ''
+  document.getElementById('filterSearch').value = ''
+  document.getElementById('filterPinned').checked = false
+  loadNotes()
+}
+
+function sortData() {
+  const sort = document.getElementById('sortBy').value
+  filtered.sort((a, b) => {
+    if (sort === 'pinned') {
+      // api uses 'pinned' not 'isPinned'
+      if (b.pinned !== a.pinned) return b.pinned - a.pinned
+      return new Date(b.createdAt) - new Date(a.createdAt)
+    }
+    if (sort === 'date-desc') return new Date(b.createdAt) - new Date(a.createdAt)
+    if (sort === 'date-asc') return new Date(a.createdAt) - new Date(b.createdAt)
+    if (sort === 'title-asc') return (a.title||'').localeCompare(b.title||'')
+    return 0
+  })
+}
+
+function renderPage() {
+  sortData()
+  const tbody = document.getElementById('notesTable')
+  document.getElementById('countLabel').textContent = `${filtered.length} note${filtered.length !== 1 ? 's' : ''}`
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6">
+      <div class="empty-state"><i class="bi bi-journal-x"></i><p>No notes found.</p></div>
+    </td></tr>`
+    document.getElementById('pagination').innerHTML = ''
+    return
+  }
+
+  const page = paginate(filtered, currentPage, PER_PAGE)
+  tbody.innerHTML = page.map(n => `
+    <tr>
+      <td class="fw-600">${escHtml(n.title)}</td>
+      <td class="text-muted small" style="max-width:250px">
+        <div class="text-truncate-2">${escHtml(n.content)}</div>
+      </td>
+      <td><span class="badge-cat">${escHtml(n.categoryName || '')}</span></td>
+      <td class="text-center">
+        <button class="btn-pin" onclick="togglePin(${n.id})" title="${n.pinned ? 'Unpin' : 'Pin'}">
+          ${n.pinned ? '📌' : '📍'}
+        </button>
+      </td>
+      <td class="text-muted small">${fmtDate(n.createdAt)}</td>
+      <td class="text-end">
+        <button class="btn btn-sm btn-outline-secondary me-1" onclick="openEdit(${n.id})">
+          <i class="bi bi-pencil"></i>
+        </button>
+        <button class="btn btn-sm btn-outline-danger" onclick="deleteNote(${n.id}, '${escHtml(n.title)}')">
+          <i class="bi bi-trash3"></i>
+        </button>
+      </td>
+    </tr>`).join('')
+
+  renderPagination(
+    document.getElementById('pagination'),
+    filtered.length, currentPage, PER_PAGE,
+    `function(p){currentPage=p;renderPage()}`
+  )
+}
+
+function openCreate() {
+  editingId = null
+  document.getElementById('noteModalTitle').textContent = 'New Note'
+  document.getElementById('noteTitle').value = ''
+  document.getElementById('noteContent').value = ''
+  document.getElementById('noteCat').value = ''
+  document.getElementById('noteModalAlert').innerHTML = ''
+  document.getElementById('noteSaveTxt').textContent = 'Create'
+  document.getElementById('charCount').textContent = '0 / 1000'
+}
+
+function openEdit(id) {
+  const note = allNotes.find(n => n.id === id)
+  if (!note) return
+  editingId = id
+  document.getElementById('noteModalTitle').textContent = 'Edit Note'
+  document.getElementById('noteTitle').value = note.title
+  document.getElementById('noteContent').value = note.content
+  // api response doesnt have categoryId, match it from categoryName
+  const cat = categories.find(c => c.categoryName === note.categoryName)
+  document.getElementById('noteCat').value = cat ? cat.id : ''
+  document.getElementById('noteModalAlert').innerHTML = ''
+  document.getElementById('noteSaveTxt').textContent = 'Save Changes'
+  document.getElementById('charCount').textContent = `${note.content.length} / 1000`
+  new bootstrap.Modal(document.getElementById('noteModal')).show()
+}
+
+async function saveNote() {
+  const title = document.getElementById('noteTitle').value.trim()
+  const content = document.getElementById('noteContent').value.trim()
+  const catId = parseInt(document.getElementById('noteCat').value)
+
+  if (!title) { showNoteAlert('Title is required.'); return }
+  if (!content) { showNoteAlert('Content is required.'); return }
+  if (!catId) { showNoteAlert('Please select a category.'); return }
+
+  document.getElementById('noteSaveSpinner').classList.remove('d-none')
+
+  const path = editingId ? `/notes/${editingId}` : '/notes'
+  const method = editingId ? 'PUT' : 'POST'
+  const body = { title, content, categoryId: catId }
+
+  const res = await apiFetch(path, { method, body: JSON.stringify(body) })
+  document.getElementById('noteSaveSpinner').classList.add('d-none')
+
+  if (!res) return
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}))
+    showNoteAlert(err.message || err.error || 'Something went wrong.')
+    return
+  }
+
+  bootstrap.Modal.getInstance(document.getElementById('noteModal')).hide()
+  showToast(editingId ? 'Note updated!' : 'Note created!', 'success')
+  loadNotes()
+}
+
+async function togglePin(id) {
+  // PATCH /notes/{id}/pin works on this API
+  const res = await apiFetch(`/notes/${id}/pin`, { method: 'PATCH' })
+  if (res && res.ok) {
+    const data = await res.json().catch(() => null)
+    const note = allNotes.find(n => n.id === id)
+    if (note) {
+      // update from response or flip local
+      note.pinned = data ? data.pinned : !note.pinned
+    }
+    renderPage()
+    showToast(note?.pinned ? 'Note pinned 📌' : 'Note unpinned', 'info')
+  }
+}
+
+async function deleteNote(id, title) {
+  if (!confirm(`Delete note "${title}"?`)) return
+  const res = await apiFetch(`/notes/${id}`, { method: 'DELETE' })
+  if (!res) return
+  if (res.status === 204 || res.ok) {
+    showToast('Note deleted.', 'success')
+    loadNotes()
+  } else {
+    const err = await res.json().catch(() => ({}))
+    showToast(err.message || 'Delete failed.', 'error')
+  }
+}
+
+function showNoteAlert(msg) {
+  document.getElementById('noteModalAlert').innerHTML =
+    `<div class="alert alert-danger py-2 small">${msg}</div>`
+}
+
+function escHtml(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')
+}
+
+function doExport() {
+  exportJson(allNotes, 'notes.json')
+  showToast('Exported!', 'info')
+}
+
+// N shortcut
+document.addEventListener('keydown', e => {
+  if (e.key === 'n' && !e.target.matches('input,textarea,select')) {
+    openCreate()
+    new bootstrap.Modal(document.getElementById('noteModal')).show()
+  }
+})
+
+document.getElementById('filterSearch').addEventListener('keydown', e => {
+  if (e.key === 'Enter') applyFilters()
+})
+
+init()
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

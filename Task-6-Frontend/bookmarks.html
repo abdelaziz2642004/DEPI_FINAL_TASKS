@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bookmarks — LinkVault</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="container py-3" style="max-width:1100px">
+  <div class="page-header">
+    <h1 class="page-title"><i class="bi bi-bookmark-heart me-2" style="color:var(--accent)"></i>Bookmarks</h1>
+    <div class="d-flex gap-2">
+      <button class="btn btn-sm btn-outline-secondary" onclick="doExport()">
+        <i class="bi bi-download me-1"></i>Export
+      </button>
+      <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#bmModal" onclick="openCreate()">
+        <i class="bi bi-plus-lg me-1"></i>New Bookmark
+      </button>
+    </div>
+  </div>
+
+  <!-- filter bar -->
+  <div class="filter-bar mb-3">
+    <div class="row g-2 align-items-end">
+      <div class="col-12 col-md-3">
+        <label class="form-label small mb-1">Category</label>
+        <select id="filterCat" class="form-select form-select-sm">
+          <option value="">All categories</option>
+        </select>
+      </div>
+      <div class="col-12 col-md-4">
+        <label class="form-label small mb-1">Search</label>
+        <input type="text" id="filterSearch" class="form-control form-control-sm" placeholder="title or URL...">
+      </div>
+      <div class="col-6 col-md-2 d-flex align-items-center gap-2 pt-3">
+        <input type="checkbox" id="filterFav" class="form-check-input">
+        <label class="form-check-label small" for="filterFav">Favorites only</label>
+      </div>
+      <div class="col-6 col-md-2 d-flex align-items-center gap-2 pt-3">
+        <input type="checkbox" id="filterArch" class="form-check-input">
+        <label class="form-check-label small" for="filterArch">Archived only</label>
+      </div>
+      <div class="col-12 col-md-1 d-flex gap-1">
+        <button class="btn btn-primary btn-sm w-100" onclick="applyFilters()">Go</button>
+        <button class="btn btn-outline-secondary btn-sm" onclick="clearFilters()" title="Clear">✕</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- sort controls -->
+  <div class="d-flex align-items-center gap-2 mb-3">
+    <span class="text-muted small">Sort:</span>
+    <select id="sortBy" class="form-select form-select-sm" style="width:auto" onchange="renderPage()">
+      <option value="date-desc">Newest first</option>
+      <option value="date-asc">Oldest first</option>
+      <option value="title-asc">Title A–Z</option>
+      <option value="title-desc">Title Z–A</option>
+    </select>
+    <span class="text-muted small ms-auto" id="countLabel"></span>
+  </div>
+
+  <div class="card">
+    <div class="table-responsive">
+      <table class="table mb-0">
+        <thead>
+          <tr>
+            <th>Title / URL</th>
+            <th>Category</th>
+            <th class="text-center">Notes</th>
+            <th class="text-center">★ Fav</th>
+            <th class="text-center">📦 Arch</th>
+            <th>Added</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="bmTable">
+          <tr class="loading-row"><td colspan="7"><div class="spinner-border spinner-border-sm text-secondary me-2"></div>Loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="pagination" class="mt-3"></div>
+</div>
+
+<!-- create/edit bookmark modal -->
+<div class="modal fade" id="bmModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="bmModalTitle">New Bookmark</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div id="bmModalAlert"></div>
+        <div class="mb-3" id="urlField">
+          <label class="form-label">URL <span class="text-danger">*</span></label>
+          <input type="url" id="bmUrl" class="form-control" placeholder="https://example.com">
+          <div class="form-text text-muted small">URL cannot be changed after saving</div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Title <span class="text-danger">*</span></label>
+          <input type="text" id="bmTitle" class="form-control" placeholder="My bookmark" maxlength="200">
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Category <span class="text-danger">*</span></label>
+          <select id="bmCat" class="form-select">
+            <option value="">Select category...</option>
+          </select>
+        </div>
+        <div id="editFlagsRow" class="d-none">
+          <div class="d-flex gap-4">
+            <div class="form-check">
+              <input type="checkbox" id="bmFav" class="form-check-input">
+              <label for="bmFav" class="form-check-label">Favorite</label>
+            </div>
+            <div class="form-check">
+              <input type="checkbox" id="bmArch" class="form-check-input">
+              <label for="bmArch" class="form-check-label">Archived</label>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-primary" onclick="saveBm()">
+          <span id="bmSaveSpinner" class="spinner-border spinner-border-sm me-2 d-none"></span>
+          <span id="bmSaveTxt">Create</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+<script>
+buildNav('bookmarks')
+
+const PER_PAGE = 10
+let allBm = []
+let filtered = []
+let currentPage = 1
+let editingBmId = null
+let categories = []
+
+// load everything
+async function init() {
+  // fetch cats for the dropdown filters
+  const cRes = await apiFetch('/categories')
+  if (cRes && cRes.ok) {
+    categories = await cRes.json()
+    populateCatDropdowns()
+  }
+  await loadBookmarks()
+}
+
+function populateCatDropdowns() {
+  const filterSel = document.getElementById('filterCat')
+  const modalSel = document.getElementById('bmCat')
+
+  const opts = categories.map(c =>
+    `<option value="${c.id}">${escHtml(c.categoryName)}</option>`).join('')
+
+  filterSel.innerHTML = '<option value="">All categories</option>' + opts
+  modalSel.innerHTML = '<option value="">Select category...</option>' + opts
+}
+
+async function loadBookmarks() {
+  // build query from filter ui
+  const params = buildFilterParams()
+  const res = await apiFetch(`/bookmarks?${params}`)
+  if (!res) return
+  allBm = await res.json()
+  filtered = [...allBm]
+  sortData()
+  currentPage = 1
+  renderPage()
+}
+
+function buildFilterParams() {
+  const parts = []
+  const cat = document.getElementById('filterCat').value
+  const search = document.getElementById('filterSearch').value.trim()
+  const fav = document.getElementById('filterFav').checked
+  const arch = document.getElementById('filterArch').checked
+  if (cat) parts.push(`CategoryId=${cat}`)
+  if (search) parts.push(`Search=${encodeURIComponent(search)}`)
+  if (fav) parts.push('IsFavorite=true')
+  if (arch) parts.push('IsArchived=true')
+  return parts.join('&')
+}
+
+function applyFilters() { currentPage = 1; loadBookmarks() }
+
+function clearFilters() {
+  document.getElementById('filterCat').value = ''
+  document.getElementById('filterSearch').value = ''
+  document.getElementById('filterFav').checked = false
+  document.getElementById('filterArch').checked = false
+  loadBookmarks()
+}
+
+function sortData() {
+  const sort = document.getElementById('sortBy').value
+  filtered.sort((a, b) => {
+    if (sort === 'date-desc') return new Date(b.createdAt) - new Date(a.createdAt)
+    if (sort === 'date-asc') return new Date(a.createdAt) - new Date(b.createdAt)
+    if (sort === 'title-asc') return (a.title||'').localeCompare(b.title||'')
+    if (sort === 'title-desc') return (b.title||'').localeCompare(a.title||'')
+    return 0
+  })
+}
+
+function renderPage() {
+  sortData()
+  const tbody = document.getElementById('bmTable')
+  document.getElementById('countLabel').textContent = `${filtered.length} bookmark${filtered.length !== 1 ? 's' : ''}`
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="7">
+      <div class="empty-state"><i class="bi bi-bookmark-x"></i><p>No bookmarks found.</p></div>
+    </td></tr>`
+    document.getElementById('pagination').innerHTML = ''
+    return
+  }
+
+  const page = paginate(filtered, currentPage, PER_PAGE)
+  tbody.innerHTML = page.map(b => `
+    <tr>
+      <td>
+        <div class="fw-600 mb-1">
+          <a href="bookmark.html?id=${b.id}" class="text-decoration-none" style="color:var(--text)">${escHtml(b.title)}</a>
+        </div>
+        <a href="${escHtml(b.url)}" target="_blank" rel="noopener" class="small text-muted url-link">
+          <i class="bi bi-link-45deg"></i> ${truncate(b.url, 60)}
+        </a>
+      </td>
+      <td><span class="badge-cat">${escHtml(b.categoryName || '')}</span></td>
+      <td class="text-center">
+        <a href="bookmark.html?id=${b.id}" class="badge bg-secondary text-decoration-none">${b.notesCount ?? 0}</a>
+      </td>
+      <td class="text-center">
+        <button class="btn-star" onclick="toggleFav(${b.id})" title="${b.isFavorite ? 'Remove from favorites' : 'Add to favorites'}">
+          ${b.isFavorite ? '★' : '☆'}
+        </button>
+      </td>
+      <td class="text-center">
+        <button class="btn-pin" onclick="toggleArch(${b.id})" title="${b.isArchived ? 'Unarchive' : 'Archive'}">
+          ${b.isArchived ? '📦' : '📂'}
+        </button>
+      </td>
+      <td class="text-muted small">${fmtDate(b.createdAt)}</td>
+      <td class="text-end">
+        <button class="btn btn-sm btn-outline-secondary me-1" onclick="openEdit(${b.id})" title="Edit">
+          <i class="bi bi-pencil"></i>
+        </button>
+        <button class="btn btn-sm btn-outline-danger" onclick="deleteBm(${b.id}, '${escHtml(b.title)}')" title="Delete">
+          <i class="bi bi-trash3"></i>
+        </button>
+      </td>
+    </tr>`).join('')
+
+  // render pagination
+  renderPagination(
+    document.getElementById('pagination'),
+    filtered.length, currentPage, PER_PAGE,
+    `function(p){currentPage=p;renderPage()}`
+  )
+}
+
+function openCreate() {
+  editingBmId = null
+  document.getElementById('bmModalTitle').textContent = 'New Bookmark'
+  document.getElementById('bmUrl').value = ''
+  document.getElementById('bmTitle').value = ''
+  document.getElementById('bmCat').value = ''
+  document.getElementById('bmFav').checked = false
+  document.getElementById('bmArch').checked = false
+  document.getElementById('bmModalAlert').innerHTML = ''
+  document.getElementById('bmSaveTxt').textContent = 'Create'
+  document.getElementById('urlField').style.opacity = '1'
+  document.getElementById('bmUrl').disabled = false
+  document.getElementById('editFlagsRow').classList.add('d-none')
+}
+
+function openEdit(id) {
+  const bm = allBm.find(b => b.id === id)
+  if (!bm) return
+  editingBmId = id
+  document.getElementById('bmModalTitle').textContent = 'Edit Bookmark'
+  document.getElementById('bmUrl').value = bm.url
+  document.getElementById('bmUrl').disabled = true
+  document.getElementById('urlField').style.opacity = '0.6'
+  document.getElementById('bmTitle').value = bm.title
+  document.getElementById('bmCat').value = bm.categoryId
+  document.getElementById('bmModalAlert').innerHTML = ''
+  document.getElementById('bmSaveTxt').textContent = 'Save'
+  // favorite and archive have their own toggle buttons, not in edit modal
+  document.getElementById('editFlagsRow').classList.add('d-none')
+  new bootstrap.Modal(document.getElementById('bmModal')).show()
+}
+
+async function saveBm() {
+  const url = document.getElementById('bmUrl').value.trim()
+  const title = document.getElementById('bmTitle').value.trim()
+  const catId = parseInt(document.getElementById('bmCat').value)
+
+  if (!title) { showBmAlert('Title is required.'); return }
+  if (!catId) { showBmAlert('Please select a category.'); return }
+  if (!editingBmId && !url) { showBmAlert('URL is required.'); return }
+
+  document.getElementById('bmSaveSpinner').classList.remove('d-none')
+
+  let body, path, method
+  if (editingBmId) {
+    const bm = allBm.find(b => b.id === editingBmId)
+    // PUT needs all fields including isFavorite and isArchived to match Swagger schema
+    body = {
+      url: bm.url,
+      title: title,
+      categoryId: catId,
+      isFavorite: bm.isFavorite,
+      isArchived: bm.isArchived
+    }
+    path = `/bookmarks/${editingBmId}`
+    method = 'PUT'
+  } else {
+    body = { url, title, categoryId: catId }
+    path = '/bookmarks'
+    method = 'POST'
+  }
+
+  const res = await apiFetch(path, { method, body: JSON.stringify(body) })
+  document.getElementById('bmSaveSpinner').classList.add('d-none')
+
+  if (!res) return
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}))
+    showBmAlert(err.message || err.error || 'Something went wrong.')
+    return
+  }
+
+  bootstrap.Modal.getInstance(document.getElementById('bmModal')).hide()
+  showToast(editingBmId ? 'Bookmark updated!' : 'Bookmark saved!', 'success')
+  loadBookmarks()
+}
+
+async function toggleFav(id) {
+  const bm = allBm.find(b => b.id === id)
+  if (!bm) return
+  // use PUT to toggle - PATCH endpoint doesnt exist on this deployment
+  const res = await apiFetch(`/bookmarks/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify({ url: bm.url, title: bm.title, categoryId: bm.categoryId, isFavorite: !bm.isFavorite, isArchived: bm.isArchived })
+  })
+  if (res && res.ok) {
+    bm.isFavorite = !bm.isFavorite
+    renderPage()
+    showToast(bm.isFavorite ? 'Added to favorites ★' : 'Removed from favorites', 'info')
+  }
+}
+
+async function toggleArch(id) {
+  const bm = allBm.find(b => b.id === id)
+  if (!bm) return
+  const res = await apiFetch(`/bookmarks/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify({ url: bm.url, title: bm.title, categoryId: bm.categoryId, isFavorite: bm.isFavorite, isArchived: !bm.isArchived })
+  })
+  if (res && res.ok) {
+    bm.isArchived = !bm.isArchived
+    renderPage()
+    showToast(bm.isArchived ? 'Archived 📦' : 'Unarchived 📂', 'info')
+  }
+}
+
+async function deleteBm(id, title) {
+  if (!confirm(`Delete bookmark "${title}"?`)) return
+  const res = await apiFetch(`/bookmarks/${id}`, { method: 'DELETE' })
+  if (!res) return
+  if (res.status === 204 || res.ok) {
+    showToast('Bookmark deleted.', 'success')
+    loadBookmarks()
+  } else {
+    const err = await res.json().catch(() => ({}))
+    showToast(err.message || err.error || 'Delete failed.', 'error')
+  }
+}
+
+function showBmAlert(msg) {
+  document.getElementById('bmModalAlert').innerHTML =
+    `<div class="alert alert-danger py-2 small">${msg}</div>`
+}
+
+function truncate(s, n) {
+  return s.length > n ? s.slice(0, n) + '…' : s
+}
+
+function escHtml(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')
+}
+
+function doExport() {
+  exportJson(allBm, 'bookmarks.json')
+  showToast('Exported!', 'info')
+}
+
+// N shortcut to open new bookmark
+document.addEventListener('keydown', e => {
+  if (e.key === 'n' && !e.target.matches('input,textarea,select')) {
+    openCreate()
+    new bootstrap.Modal(document.getElementById('bmModal')).show()
+  }
+})
+
+// enter to apply search
+document.getElementById('filterSearch')?.addEventListener('keydown', e => {
+  if (e.key === 'Enter') applyFilters()
+})
+
+init()
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
