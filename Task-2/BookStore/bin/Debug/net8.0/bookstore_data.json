@@ -1,0 +1,65 @@
+{
+  "Books": [
+    {
+      "$type": "paperback",
+      "PageCount": 180,
+      "Format": "Paperback",
+      "Id": 1,
+      "Title": "The Great Gatsby",
+      "Author": "F. Scott Fitzgerald",
+      "Category": "Fiction",
+      "Price": 10.99,
+      "Stock": 5
+    },
+    {
+      "$type": "ebook",
+      "FileFormat": "EPUB",
+      "Format": "Ebook",
+      "Id": 2,
+      "Title": "1984",
+      "Author": "George Orwell",
+      "Category": "Dystopian",
+      "Price": 7.99,
+      "Stock": 10
+    },
+    {
+      "$type": "audiobook",
+      "DurationHours": 19.5,
+      "Format": "Audiobook",
+      "Id": 3,
+      "Title": "Becoming",
+      "Author": "Michelle Obama",
+      "Category": "Biography",
+      "Price": 25.50,
+      "Stock": 3
+    },
+    {
+      "$type": "paperback",
+      "PageCount": 281,
+      "Format": "Paperback",
+      "Id": 4,
+      "Title": "To Kill a Mockingbird",
+      "Author": "Harper Lee",
+      "Category": "Fiction",
+      "Price": 12.99,
+      "Stock": 0
+    }
+  ],
+  "Customers": [
+    {
+      "Id": 1,
+      "FirstName": "John",
+      "LastName": "Doe",
+      "Email": "john.doe@gmail.com",
+      "FullName": "John Doe"
+    },
+    {
+      "Id": 2,
+      "FirstName": "Jane",
+      "LastName": "Smith",
+      "Email": "jane.smith@gmail.com",
+      "FullName": "Jane Smith"
+    }
+  ],
+  "Purchases": []
+}

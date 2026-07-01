@@ -1,0 +1,14 @@
+C:\Users\abdel\OneDrive\Desktop\depitasks\Task-2\BookStore\bin\Debug\net8.0\BookStore.exe
+C:\Users\abdel\OneDrive\Desktop\depitasks\Task-2\BookStore\bin\Debug\net8.0\BookStore.deps.json
+C:\Users\abdel\OneDrive\Desktop\depitasks\Task-2\BookStore\bin\Debug\net8.0\BookStore.runtimeconfig.json
+C:\Users\abdel\OneDrive\Desktop\depitasks\Task-2\BookStore\bin\Debug\net8.0\BookStore.dll
+C:\Users\abdel\OneDrive\Desktop\depitasks\Task-2\BookStore\bin\Debug\net8.0\BookStore.pdb
+C:\Users\abdel\OneDrive\Desktop\depitasks\Task-2\BookStore\obj\Debug\net8.0\BookStore.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\abdel\OneDrive\Desktop\depitasks\Task-2\BookStore\obj\Debug\net8.0\BookStore.AssemblyInfoInputs.cache
+C:\Users\abdel\OneDrive\Desktop\depitasks\Task-2\BookStore\obj\Debug\net8.0\BookStore.AssemblyInfo.cs
+C:\Users\abdel\OneDrive\Desktop\depitasks\Task-2\BookStore\obj\Debug\net8.0\BookStore.csproj.CoreCompileInputs.cache
+C:\Users\abdel\OneDrive\Desktop\depitasks\Task-2\BookStore\obj\Debug\net8.0\BookStore.dll
+C:\Users\abdel\OneDrive\Desktop\depitasks\Task-2\BookStore\obj\Debug\net8.0\refint\BookStore.dll
+C:\Users\abdel\OneDrive\Desktop\depitasks\Task-2\BookStore\obj\Debug\net8.0\BookStore.pdb
+C:\Users\abdel\OneDrive\Desktop\depitasks\Task-2\BookStore\obj\Debug\net8.0\BookStore.genruntimeconfig.cache
+C:\Users\abdel\OneDrive\Desktop\depitasks\Task-2\BookStore\obj\Debug\net8.0\ref\BookStore.dll
