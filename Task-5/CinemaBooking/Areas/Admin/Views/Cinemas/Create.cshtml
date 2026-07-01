@@ -1,0 +1,34 @@
+@model CinemaBooking.ViewModels.CinemaFormViewModel
+@{
+    ViewData["Title"] = Model.Id == 0 ? "Add Cinema" : "Edit Cinema";
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+}
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="card p-4">
+            <form method="post" action="/Admin/Cinemas/@(Model.Id == 0 ? "Create" : "Edit")">
+                @Html.AntiForgeryToken()
+                @if (Model.Id != 0) { <input type="hidden" asp-for="Id" /> }
+                <div class="mb-3">
+                    <label class="form-label fw-500">Name</label>
+                    <input asp-for="Name" class="form-control" />
+                    <span asp-validation-for="Name" class="text-danger small"></span>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-500">Location</label>
+                    <input asp-for="Location" class="form-control" />
+                    <span asp-validation-for="Location" class="text-danger small"></span>
+                </div>
+                <div class="mb-4">
+                    <label class="form-label fw-500">Description</label>
+                    <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+                </div>
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-gold px-4">@(Model.Id == 0 ? "Create Cinema" : "Save Changes")</button>
+                    <a href="/Admin/Cinemas" class="btn btn-outline-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

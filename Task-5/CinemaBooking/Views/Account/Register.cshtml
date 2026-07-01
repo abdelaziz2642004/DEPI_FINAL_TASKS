@@ -1,0 +1,44 @@
+@model CinemaBooking.ViewModels.RegisterViewModel
+@{ ViewData["Title"] = "Create Account"; }
+
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-5 col-lg-4">
+            <div class="card text-white p-4">
+                <h2 class="fw-bold mb-1">Create Account</h2>
+                <p class="text-muted mb-4">Join CineMax and start booking</p>
+                <form method="post" action="/Account/Register">
+                    @Html.AntiForgeryToken()
+                    <div class="mb-3">
+                        <label class="form-label fw-500">Full Name</label>
+                        <input asp-for="FullName" class="form-control bg-dark text-white border-secondary" placeholder="John Doe" />
+                        <span asp-validation-for="FullName" class="text-danger small"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-500">Email</label>
+                        <input asp-for="Email" class="form-control bg-dark text-white border-secondary" placeholder="your@email.com" />
+                        <span asp-validation-for="Email" class="text-danger small"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-500">Password</label>
+                        <input asp-for="Password" class="form-control bg-dark text-white border-secondary" placeholder="••••••••" />
+                        <span asp-validation-for="Password" class="text-danger small"></span>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label fw-500">Confirm Password</label>
+                        <input asp-for="ConfirmPassword" class="form-control bg-dark text-white border-secondary" placeholder="••••••••" />
+                        <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
+                    </div>
+                    <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
+                    <button type="submit" class="btn btn-gold w-100 py-2 fw-bold">Create Account</button>
+                </form>
+                <div class="text-center mt-3">
+                    <span class="text-muted">Already have an account? </span>
+                    <a href="/Account/Login" style="color:var(--gold)">Login</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

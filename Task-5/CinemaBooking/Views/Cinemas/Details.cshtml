@@ -1,0 +1,42 @@
+@model CinemaBooking.Models.Cinema
+@{ ViewData["Title"] = Model.Name; }
+
+<div class="container my-5">
+    <h1 class="fw-bold mb-1" style="color:#fff">@Model.Name</h1>
+    <p class="text-muted mb-5"><i class="bi bi-geo-alt me-1"></i>@Model.Location</p>
+
+    @foreach (var hall in Model.Halls)
+    {
+        <div class="card text-white p-4 mb-4">
+            <h5 class="fw-bold mb-1">@hall.Name</h5>
+            <p class="text-muted small mb-3"><i class="bi bi-person me-1"></i>@hall.SeatCapacity seats</p>
+
+            <h6 class="text-muted mb-3">Upcoming Showtimes</h6>
+            @{
+                var upcoming = hall.Showtimes?.Where(s => s.StartTime > DateTime.UtcNow).OrderBy(s => s.StartTime).ToList();
+            }
+            @if (upcoming?.Any() == true)
+            {
+                <div class="row g-2">
+                    @foreach (var st in upcoming)
+                    {
+                        <div class="col-12 col-sm-6 col-md-4">
+                            <div class="p-3 rounded-2" style="background:rgba(255,255,255,0.05)">
+                                <div class="fw-bold mb-1">@st.Movie?.Title</div>
+                                <div class="text-muted small mb-2"><i class="bi bi-clock me-1"></i>@st.StartTime.ToLocalTime().ToString("MMM d · h:mm tt")</div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span style="color:var(--gold)">$@st.TicketPrice.ToString("F2")</span>
+                                    <a href="/Movies/Details/@st.MovieId" class="btn btn-gold btn-sm">Book</a>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <p class="text-muted small">No upcoming showtimes in this hall.</p>
+            }
+        </div>
+    }
+</div>

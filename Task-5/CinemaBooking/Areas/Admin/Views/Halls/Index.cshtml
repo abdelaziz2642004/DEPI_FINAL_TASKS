@@ -1,0 +1,40 @@
+@model List<CinemaBooking.Models.Hall>
+@{
+    ViewData["Title"] = $"Halls — {ViewBag.Cinema?.Name}";
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+    var cinema = (CinemaBooking.Models.Cinema)ViewBag.Cinema;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h5 class="text-white fw-bold mb-0">@cinema.Name — Halls</h5>
+        <p class="text-muted small mb-0">@cinema.Location</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="/Admin/Cinemas" class="btn btn-outline-secondary btn-sm">← Back</a>
+        <a href="/Admin/Halls/Create?cinemaId=@cinema.Id" class="btn btn-gold btn-sm"><i class="bi bi-plus me-1"></i>Add Hall</a>
+    </div>
+</div>
+
+<div class="card">
+    <table class="table table-dark table-hover mb-0">
+        <thead><tr><th>Name</th><th>Seat Capacity</th><th></th></tr></thead>
+        <tbody>
+            @foreach (var h in Model)
+            {
+                <tr>
+                    <td class="align-middle fw-500">@h.Name</td>
+                    <td class="align-middle text-muted">@h.SeatCapacity seats</td>
+                    <td class="align-middle">
+                        <a href="/Admin/Halls/Edit/@h.Id" class="btn btn-sm btn-outline-warning me-1">Edit</a>
+                        <form method="post" action="/Admin/Halls/Delete" class="d-inline" onsubmit="return confirm('Delete hall?')">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@h.Id" />
+                            <button class="btn btn-sm btn-outline-danger">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

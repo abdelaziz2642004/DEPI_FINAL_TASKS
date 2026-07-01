@@ -1,0 +1,82 @@
+@model CinemaBooking.Models.Movie
+@{ ViewData["Title"] = Model.Title; }
+
+<div class="container my-5">
+    <div class="row g-5">
+        <div class="col-md-4">
+            @if (Model.PosterPath != null)
+            {
+                <img src="@Model.PosterPath" class="w-100 rounded-3 shadow" alt="@Model.Title" style="max-height:500px;object-fit:cover;" />
+            }
+            else
+            {
+                <div class="poster-placeholder rounded-3" style="height:400px;"><i class="bi bi-film"></i></div>
+            }
+        </div>
+        <div class="col-md-8">
+            <span class="badge badge-gold mb-2">@Model.Category?.Name</span>
+            <h1 class="fw-bold mb-2" style="color:#fff">@Model.Title</h1>
+            <div class="d-flex gap-3 text-muted mb-3 flex-wrap">
+                <span><i class="bi bi-clock me-1"></i>@Model.DurationMinutes min</span>
+                <span><i class="bi bi-translate me-1"></i>@Model.Language</span>
+                <span><i class="bi bi-calendar me-1"></i>@Model.ReleaseDate.ToString("MMM d, yyyy")</span>
+            </div>
+            <p class="text-muted">@Model.Description</p>
+
+            <hr class="border-secondary my-4" />
+            <h4 class="fw-bold mb-3" style="color:var(--gold)">Upcoming Showtimes</h4>
+
+            @{
+                var showtimes = (List<CinemaBooking.Models.Showtime>)ViewBag.Showtimes;
+            }
+
+            @if (showtimes.Any())
+            {
+                <div class="row g-3">
+                    @foreach (var st in showtimes)
+                    {
+                        <div class="col-12 col-md-6">
+                            <div class="card text-white p-3">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <div>
+                                        <div class="fw-bold">@st.Hall?.Cinema?.Name</div>
+                                        <div class="text-muted small">@st.Hall?.Name — @st.Hall?.SeatCapacity seats</div>
+                                    </div>
+                                    <span class="badge @(st.SeatsAvailable > 10 ? "bg-success" : st.SeatsAvailable > 0 ? "bg-warning text-dark" : "bg-danger")">
+                                        @st.SeatsAvailable left
+                                    </span>
+                                </div>
+                                <div class="mb-2">
+                                    <i class="bi bi-calendar-event me-1" style="color:var(--gold)"></i>
+                                    <span class="fw-500">@st.StartTime.ToLocalTime().ToString("ddd, MMM d · h:mm tt")</span>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="fw-bold" style="color:var(--gold)">$@st.TicketPrice.ToString("F2") / seat</span>
+                                    @if (st.SeatsAvailable > 0)
+                                    {
+                                        if (User.Identity?.IsAuthenticated == true)
+                                        {
+                                            <a href="/Booking/Book/@st.Id" class="btn btn-gold btn-sm">Book Now</a>
+                                        }
+                                        else
+                                        {
+                                            <a href="/Account/Login?returnUrl=/Booking/Book/@st.Id" class="btn btn-gold btn-sm">Login to Book</a>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger">Sold Out</span>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="text-muted"><i class="bi bi-info-circle me-1"></i>No upcoming showtimes for this movie.</div>
+            }
+        </div>
+    </div>
+</div>

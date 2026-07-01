@@ -1,0 +1,37 @@
+@model List<CinemaBooking.Models.Booking>
+@{
+    ViewData["Title"] = "All Bookings";
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+}
+
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-dark table-hover mb-0">
+            <thead>
+                <tr><th>ID</th><th>Customer</th><th>Movie</th><th>Cinema</th><th>Date</th><th>Seats</th><th>Total</th><th>Status</th></tr>
+            </thead>
+            <tbody>
+                @foreach (var b in Model)
+                {
+                    <tr class="@(b.IsCancelled ? "opacity-50" : "")">
+                        <td class="align-middle text-muted small">#@b.Id</td>
+                        <td class="align-middle">@b.User?.Email</td>
+                        <td class="align-middle fw-500">@b.Showtime?.Movie?.Title</td>
+                        <td class="align-middle text-muted">@b.Showtime?.Hall?.Cinema?.Name</td>
+                        <td class="align-middle text-muted small">@b.Showtime?.StartTime.ToLocalTime().ToString("MMM d · h:mm tt")</td>
+                        <td class="align-middle">@b.NumberOfSeats</td>
+                        <td class="align-middle" style="color:var(--gold)">$@b.TotalPrice.ToString("F2")</td>
+                        <td class="align-middle">
+                            @if (b.IsCancelled)
+                            { <span class="badge bg-danger">Cancelled</span> }
+                            else if (b.Showtime?.HasStarted == true)
+                            { <span class="badge bg-secondary">Attended</span> }
+                            else
+                            { <span class="badge bg-success">Confirmed</span> }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

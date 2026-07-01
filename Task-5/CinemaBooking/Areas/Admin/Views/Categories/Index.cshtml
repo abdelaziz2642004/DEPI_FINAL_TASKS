@@ -1,0 +1,44 @@
+@model List<CinemaBooking.Models.Category>
+@{
+    ViewData["Title"] = "Manage Categories";
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+}
+
+<div class="row g-4">
+    <div class="col-md-4">
+        <div class="card p-4">
+            <h6 class="fw-bold mb-3">Add Category</h6>
+            <form method="post" action="/Admin/Categories/Create">
+                @Html.AntiForgeryToken()
+                <div class="mb-3">
+                    <input type="text" name="Name" class="form-control" placeholder="Category name" required />
+                </div>
+                <button class="btn btn-gold w-100">Add</button>
+            </form>
+        </div>
+    </div>
+    <div class="col-md-8">
+        <div class="card">
+            <table class="table table-dark table-hover mb-0">
+                <thead><tr><th>Name</th><th>Books</th><th></th></tr></thead>
+                <tbody>
+                    @foreach (var c in Model)
+                    {
+                        <tr>
+                            <td class="align-middle fw-500">@c.Name</td>
+                            <td class="align-middle text-muted">@c.Movies?.Count</td>
+                            <td class="align-middle">
+                                <form method="post" action="/Admin/Categories/Delete" class="d-inline"
+                                      onsubmit="return confirm('Delete @c.Name?')">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@c.Id" />
+                                    <button class="btn btn-sm btn-outline-danger">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

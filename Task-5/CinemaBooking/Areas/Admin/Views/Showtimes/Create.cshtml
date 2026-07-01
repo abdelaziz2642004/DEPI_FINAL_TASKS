@@ -1,0 +1,53 @@
+@model CinemaBooking.ViewModels.ShowtimeFormViewModel
+@{
+    ViewData["Title"] = Model.Id == 0 ? "Add Showtime" : "Edit Showtime";
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+}
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="card p-4">
+            <form method="post" action="/Admin/Showtimes/@(Model.Id == 0 ? "Create" : "Edit")">
+                @Html.AntiForgeryToken()
+                @if (Model.Id != 0) { <input type="hidden" asp-for="Id" /> }
+                <div class="mb-3">
+                    <label class="form-label fw-500">Movie</label>
+                    <select asp-for="MovieId" class="form-select">
+                        <option value="">— Select Movie —</option>
+                        @foreach (var m in Model.Movies)
+                        {
+                            <option value="@m.Id" selected="@(Model.MovieId == m.Id)">@m.Title</option>
+                        }
+                    </select>
+                    <span asp-validation-for="MovieId" class="text-danger small"></span>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-500">Hall</label>
+                    <select asp-for="HallId" class="form-select">
+                        <option value="">— Select Hall —</option>
+                        @foreach (var h in Model.Halls)
+                        {
+                            <option value="@h.Id" selected="@(Model.HallId == h.Id)">@h.Cinema?.Name — @h.Name (@h.SeatCapacity seats)</option>
+                        }
+                    </select>
+                    <span asp-validation-for="HallId" class="text-danger small"></span>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-500">Start Time</label>
+                    <input asp-for="StartTime" type="datetime-local" class="form-control"
+                           value="@Model.StartTime.ToString("yyyy-MM-ddTHH:mm")" />
+                    <span asp-validation-for="StartTime" class="text-danger small"></span>
+                </div>
+                <div class="mb-4">
+                    <label class="form-label fw-500">Ticket Price ($)</label>
+                    <input asp-for="TicketPrice" type="number" step="0.01" class="form-control" />
+                    <span asp-validation-for="TicketPrice" class="text-danger small"></span>
+                </div>
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-gold px-4">@(Model.Id == 0 ? "Create Showtime" : "Save Changes")</button>
+                    <a href="/Admin/Showtimes" class="btn btn-outline-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

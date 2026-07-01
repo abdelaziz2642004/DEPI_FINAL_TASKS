@@ -1,0 +1,53 @@
+@{
+    ViewData["Title"] = "Dashboard";
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+}
+
+<div class="row g-4 mb-5">
+    <div class="col-6 col-md-3">
+        <div class="stat-card text-center">
+            <div style="font-size:2rem;color:var(--gold)"><i class="bi bi-film"></i></div>
+            <div class="display-6 fw-bold text-white mt-2">@ViewBag.TotalMovies</div>
+            <div class="text-muted small">Movies</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card text-center">
+            <div style="font-size:2rem;color:#0dcaf0"><i class="bi bi-building"></i></div>
+            <div class="display-6 fw-bold text-white mt-2">@ViewBag.TotalCinemas</div>
+            <div class="text-muted small">Cinemas</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card text-center">
+            <div style="font-size:2rem;color:#198754"><i class="bi bi-ticket"></i></div>
+            <div class="display-6 fw-bold text-white mt-2">@ViewBag.TotalBookings</div>
+            <div class="text-muted small">Bookings</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card text-center">
+            <div style="font-size:2rem;color:#d63384"><i class="bi bi-cash-stack"></i></div>
+            <div class="display-6 fw-bold text-white mt-2">$@((decimal)ViewBag.TotalRevenue).ToString("N0")</div>
+            <div class="text-muted small">Revenue</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-6"><div class="card p-4">
+        <h6 class="fw-bold mb-3">Quick Actions</h6>
+        <div class="d-grid gap-2">
+            <a href="/Admin/Movies/Create" class="btn btn-gold"><i class="bi bi-plus me-2"></i>Add Movie</a>
+            <a href="/Admin/Showtimes/Create" class="btn btn-outline-warning"><i class="bi bi-plus me-2"></i>Add Showtime</a>
+            <a href="/Admin/Cinemas/Create" class="btn btn-outline-secondary"><i class="bi bi-plus me-2"></i>Add Cinema</a>
+        </div>
+    </div></div>
+    <div class="col-md-6"><div class="card p-4">
+        <h6 class="fw-bold mb-3">Manage</h6>
+        <div class="d-grid gap-2">
+            <a href="/Admin/Bookings" class="btn btn-outline-info"><i class="bi bi-ticket me-2"></i>View All Bookings</a>
+            <a href="/Admin/Categories" class="btn btn-outline-secondary"><i class="bi bi-tag me-2"></i>Manage Categories</a>
+        </div>
+    </div></div>
+</div>

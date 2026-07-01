@@ -1,0 +1,27 @@
+@model List<CinemaBooking.Models.Cinema>
+@{ ViewData["Title"] = "Cinemas"; }
+
+<div class="container my-5">
+    <h1 class="section-title mb-5">Our Cinemas</h1>
+    <div class="row g-4">
+        @foreach (var cinema in Model)
+        {
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="card text-white h-100 p-4">
+                    <div class="mb-2" style="font-size:2.5rem">🎭</div>
+                    <h4 class="fw-bold">@cinema.Name</h4>
+                    <p class="text-muted small mb-2"><i class="bi bi-geo-alt me-1"></i>@cinema.Location</p>
+                    @if (!string.IsNullOrEmpty(cinema.Description))
+                    {
+                        <p class="text-muted small mb-3">@cinema.Description</p>
+                    }
+                    <div class="mb-3">
+                        <span class="badge bg-secondary">@cinema.Halls?.Count hall(s)</span>
+                        <span class="badge bg-secondary ms-1">@(cinema.Halls?.Sum(h => h.SeatCapacity) ?? 0) total seats</span>
+                    </div>
+                    <a href="/Cinemas/Details/@cinema.Id" class="btn btn-outline-gold btn-sm mt-auto">View Showtimes</a>
+                </div>
+            </div>
+        }
+    </div>
+</div>

@@ -1,0 +1,44 @@
+@model List<CinemaBooking.Models.Movie>
+@{
+    ViewData["Title"] = "Manage Movies";
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h5 class="fw-bold text-white mb-0">All Movies (@Model.Count)</h5>
+    <a href="/Admin/Movies/Create" class="btn btn-gold"><i class="bi bi-plus me-1"></i>Add Movie</a>
+</div>
+
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-dark table-hover mb-0">
+            <thead><tr><th>Poster</th><th>Title</th><th>Category</th><th>Duration</th><th>Language</th><th>Release</th><th></th></tr></thead>
+            <tbody>
+                @foreach (var m in Model)
+                {
+                    <tr>
+                        <td>
+                            @if (m.PosterPath != null)
+                            { <img src="@m.PosterPath" style="width:40px;height:55px;object-fit:cover;border-radius:4px" alt="" /> }
+                            else
+                            { <span class="text-muted">—</span> }
+                        </td>
+                        <td class="fw-500 align-middle">@m.Title</td>
+                        <td class="align-middle"><span class="badge" style="background:rgba(245,166,35,0.2);color:var(--gold)">@m.Category?.Name</span></td>
+                        <td class="align-middle text-muted">@m.DurationMinutes min</td>
+                        <td class="align-middle text-muted">@m.Language</td>
+                        <td class="align-middle text-muted">@m.ReleaseDate.ToString("MMM d, yyyy")</td>
+                        <td class="align-middle">
+                            <a href="/Admin/Movies/Edit/@m.Id" class="btn btn-sm btn-outline-warning me-1">Edit</a>
+                            <form method="post" action="/Admin/Movies/Delete" class="d-inline" onsubmit="return confirm('Delete @m.Title?')">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@m.Id" />
+                                <button class="btn btn-sm btn-outline-danger">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
